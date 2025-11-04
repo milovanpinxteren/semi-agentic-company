@@ -44,7 +44,10 @@ class ScheduleManager:
         
         # Calculate a random time within the window for first run
         from utils.humanizer import Humanizer
-        humanizer = Humanizer({'enabled': False})  # Temporary instance
+        humanizer = Humanizer({
+            'enabled': False,
+            'timezone': str(self.timezone)  # Pass the scheduler's timezone
+        })
         next_run = humanizer.random_time_in_window(start_time, end_time)
         
         # If the random time has already passed today, schedule for tomorrow
