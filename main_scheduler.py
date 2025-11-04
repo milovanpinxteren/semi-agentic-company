@@ -184,46 +184,58 @@ class MainScheduler:
                 )
             
             elif schedule_type == 'interval':
-                interval_minutes = bot_config.get('interval_minutes', 60)
+                # Support both interval_hours and interval_minutes
+                interval_hours = bot_config.get('interval_hours')
+                interval_minutes = bot_config.get('interval_minutes')
+
+                if interval_hours:
+                    interval_minutes = interval_hours * 60
+                elif not interval_minutes:
+                    interval_minutes = 60  # Default to 1 hour
+
+                # Check if should run immediately on start
+                run_on_start = bot_config.get('run_on_start', False)
+
                 self.schedule_manager.add_interval_job(
                     func=bot_wrapper,
                     job_id=bot_name,
-                    interval_minutes=interval_minutes
+                    interval_minutes=interval_minutes,
+                    run_immediately=run_on_start
                 )
-            
+
             else:
                 self.logger.error(f"Unknown schedule type for {bot_name}: {schedule_type}")
                 return
-            
+
             self.logger.info(f"Scheduled bot: {bot_name} ({schedule_type})")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to schedule bot {bot_name}: {e}")
-    
+
     def start(self):
         """Start the scheduler"""
         try:
             # Schedule git updates
             self.schedule_git_updates()
-            
+
             # Schedule all bots
             self.schedule_bots()
-            
+
             # Start the scheduler
             self.schedule_manager.start()
-            
+
             # Print scheduled jobs
             self.schedule_manager.print_jobs()
-            
+
             self.logger.info("Scheduler is running. Press Ctrl+C to exit.")
-            
+
             # Send startup email
             if self.email_logger.enabled:
                 self.email_logger.notify_info(
                     'Scheduler',
                     f"Scheduler started successfully with {len(self.schedule_manager.get_jobs())} jobs"
                 )
-            
+
             # Keep the script running
             try:
                 while True:
@@ -231,13 +243,13 @@ class MainScheduler:
             except (KeyboardInterrupt, SystemExit):
                 self.logger.info("Shutdown signal received")
                 self.shutdown()
-        
+
         except Exception as e:
             self.logger.error(f"Fatal error: {e}", exc_info=True)
             if self.email_logger:
                 self.email_logger.notify_error('Scheduler', e)
             sys.exit(1)
-    
+
     def shutdown(self):
         """Shutdown the scheduler gracefully"""
         self.logger.info("Shutting down scheduler...")

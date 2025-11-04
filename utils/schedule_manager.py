@@ -145,51 +145,65 @@ class ScheduleManager:
         self.logger.info(f"Added monthly job '{job_id}' - day {day_of_month} at {time}")
         return job
     
-    def add_interval_job(self, func, job_id: str, interval_minutes: int, **kwargs):
+    def add_interval_job(self, func, job_id: str, interval_minutes: int, run_immediately: bool = False, **kwargs):
         """
         Add a job that runs at fixed intervals
-        
+
         Args:
             func: Function to execute
             job_id: Unique job identifier
             interval_minutes: Interval in minutes
+            run_immediately: If True, run the job immediately, then at intervals
             **kwargs: Additional arguments for the job
         """
+        from datetime import datetime, timedelta
+
+        # Schedule interval job - if run_immediately, set next run to now + 1 second
+        if run_immediately:
+            next_run = datetime.now(self.timezone) + timedelta(seconds=1)
+        else:
+            next_run = None  # Will start after first interval
+
         trigger = IntervalTrigger(
             minutes=interval_minutes,
-            timezone=self.timezone
+            timezone=self.timezone,
+            start_date=next_run
         )
-        
+
         job = self.scheduler.add_job(
             func,
             trigger=trigger,
             id=job_id,
             name=f"Interval job: {job_id} (every {interval_minutes} min)",
+            next_run_time=next_run,  # Force immediate execution
             **kwargs
         )
-        
+
         self.jobs[job_id] = job
-        self.logger.info(f"Added interval job '{job_id}' - every {interval_minutes} minutes")
+        if run_immediately:
+            self.logger.info(f"Added interval job '{job_id}' - every {interval_minutes} minutes (starting immediately)")
+        else:
+            self.logger.info(f"Added interval job '{job_id}' - every {interval_minutes} minutes")
         return job
-    
+
     def remove_job(self, job_id: str):
         """Remove a job by ID"""
         if job_id in self.jobs:
             self.scheduler.remove_job(job_id)
             del self.jobs[job_id]
             self.logger.info(f"Removed job '{job_id}'")
-    
+
     def get_jobs(self) -> list:
         """Get list of all scheduled jobs"""
         return self.scheduler.get_jobs()
-    
+
     def print_jobs(self):
         """Print all scheduled jobs"""
         jobs = self.get_jobs()
         if not jobs:
             self.logger.info("No jobs scheduled")
             return
-        
+
         self.logger.info(f"Scheduled jobs ({len(jobs)}):")
         for job in jobs:
             self.logger.info(f"  - {job.name} (next run: {job.next_run_time})")
