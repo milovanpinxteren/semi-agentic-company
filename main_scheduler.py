@@ -25,6 +25,7 @@ from utils.email_logger import EmailLogger
 
 # Import bot modules
 from bots.linkedin_likebot.bot import run_linkedin_bot
+from bots.linkedin_follower_messagebot.bot import run_follower_message_bot
 
 
 class MainScheduler:
@@ -140,6 +141,7 @@ class MainScheduler:
         # Map bot names to their run functions
         bot_functions = {
             'linkedin_likebot': run_linkedin_bot,
+            'linkedin_follower_messagebot': run_follower_message_bot,  # ADD THIS
             # Add more bots here as you create them
         }
         

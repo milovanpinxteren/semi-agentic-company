@@ -41,7 +41,7 @@ class LinkedInLikeBot:
 
         # Configuration
         self.max_actions = config.get('max_actions_per_run', 20)
-        self.random_delay_config = config.get('random_delay_minutes', {'min': 5, 'max': 45})
+        self.random_delay_config = config.get('random_delay_minutes', {'min': 1, 'max': 10})
 
         # LinkedIn credentials
         creds = config.get('linkedin_credentials', {})
@@ -154,7 +154,7 @@ class LinkedInLikeBot:
             password_field.send_keys(Keys.RETURN)
 
             time.sleep(25)
-            self.logger.info("✅ Logged in to LinkedIn")
+            self.logger.info("Logged in to LinkedIn")
 
         except Exception as e:
             self.logger.error(f"Failed to login: {e}")
@@ -184,7 +184,7 @@ class LinkedInLikeBot:
 
             try:
                 activity_url = profile_url.rstrip("/") + "/recent-activity/all/"
-                self.logger.info(f"🔗 Visiting: {activity_url}")
+                self.logger.info(f"Visiting: {activity_url}")
                 self.driver.get(activity_url)
                 time.sleep(self.humanizer.random_action_delay())
 
@@ -212,7 +212,7 @@ class LinkedInLikeBot:
                         )
                         age_text = age_element.text.lower()
                         if any(term in age_text for term in ["maanden geleden", "jaar geleden", "jaren geleden"]):
-                            self.logger.info(f"⏳ Post too old ({age_text}), skipping user")
+                            self.logger.info(f"Post too old ({age_text}), skipping user")
                             break
                     except Exception:
                         pass  # Continue if age can't be determined
@@ -271,7 +271,7 @@ class LinkedInLikeBot:
                 encoded_keyword = urllib.parse.quote(keyword)
                 search_url = f'https://www.linkedin.com/search/results/content/?keywords={encoded_keyword}&origin=FACETED_SEARCH&sid=%3B%3BW&sortBy="date_posted"'
 
-                self.logger.info(f"🔍 Searching for: {keyword}")
+                self.logger.info(f"Searching for: {keyword}")
                 self.driver.get(search_url)
                 time.sleep(self.humanizer.random_action_delay())
 
@@ -427,11 +427,11 @@ class LinkedInLikeBot:
             self.setup()
 
             # Like posts from interesting people
-            self.logger.info("\n🔹 Phase 1: Liking posts from interesting people")
+            self.logger.info("\nPhase 1: Liking posts from interesting people")
             self.like_posts_from_interesting_people()
 
             # Search and like posts
-            self.logger.info("\n🔹 Phase 2: Searching and liking relevant posts")
+            self.logger.info("\nPhase 2: Searching and liking relevant posts")
             self.like_posts_from_search()
 
             # Cleanup
