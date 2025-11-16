@@ -72,7 +72,7 @@ git config user.email "$GITHUB_USERNAME@users.noreply.github.com"
 
 # Test git authentication
 echo -e "${BLUE}Step 8: Testing git authentication...${NC}"
-git pull origin main
+git pull origin master
 if [ $? -ne 0 ]; then
     echo -e "${RED}❌ Git authentication test failed.${NC}"
     exit 1
