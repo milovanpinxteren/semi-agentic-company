@@ -131,6 +131,11 @@ class LinkedInLikeBot:
         options.add_experimental_option("detach", False)
         options.page_load_strategy = 'normal'
 
+        options.add_argument('--virtual-time-budget=10000')  # Limit rendering time
+        options.add_argument('--run-all-compositor-stages-before-draw')
+        options.add_argument('--disable-gpu-compositing')
+        options.add_argument('--software-rasterizer')
+
         self.logger.info("Initializing Chrome driver...")
         self.driver = webdriver.Chrome(service=service, options=options)
 

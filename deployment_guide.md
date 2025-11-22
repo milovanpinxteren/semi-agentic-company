@@ -103,7 +103,13 @@ exit
 
 ### From Any Computer (SSH to NUC):
 
+
 ```bash
+
+source ~/.bashrc
+#creates the aliases
+
+
 # Quick status check
 sac-status
 

@@ -56,6 +56,11 @@ class LinkedInFollowerMessageBot:
         chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         chrome_options.add_experimental_option('useAutomationExtension', False)
 
+        chrome_options.add_argument('--virtual-time-budget=10000')  # Limit rendering time
+        chrome_options.add_argument('--run-all-compositor-stages-before-draw')
+        chrome_options.add_argument('--disable-gpu-compositing')
+        chrome_options.add_argument('--software-rasterizer')
+
         # Add user agent to look more human
         chrome_options.add_argument(
             '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
