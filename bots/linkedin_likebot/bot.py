@@ -306,22 +306,80 @@ class LinkedInLikeBot:
 
                     try:
                         try:
-                            # Try multiple methods to extract text
+                            # Method 1: Standard text extraction
                             text = post.text
+                            self.logger.debug(f"Method 1 - post.text: '{text[:50]}...' (len: {len(text)})")
 
-                            # If text is empty, try alternative methods
+                            # Method 2: Specific LinkedIn elements
                             if not text or len(text.strip()) < 10:
-                                # Try getting text from specific elements
                                 text_elements = post.find_elements(By.CSS_SELECTOR,
                                                                    '.feed-shared-text, .feed-shared-update-v2__description, .attributed-text-segment-list__content')
                                 if text_elements:
                                     text = ' '.join([elem.text for elem in text_elements if elem.text])
+                                    self.logger.debug(f"Method 2 - CSS selectors: '{text[:50]}...' (len: {len(text)})")
 
-                                # If still empty, try getting all text content
-                                if not text or len(text.strip()) < 10:
-                                    text = post.get_attribute('textContent') or ''
+                            # Method 3: More specific selectors
+                            if not text or len(text.strip()) < 10:
+                                more_selectors = [
+                                    'span[dir="ltr"]',
+                                    '.break-words span',
+                                    '.feed-shared-text__text-view span',
+                                    '.attributed-text-segment-list__content span'
+                                ]
+                                for selector in more_selectors:
+                                    elements = post.find_elements(By.CSS_SELECTOR, selector)
+                                    if elements:
+                                        text = ' '.join([elem.text for elem in elements if elem.text.strip()])
+                                        if text.strip():
+                                            self.logger.debug(
+                                                f"Method 3 - {selector}: '{text[:50]}...' (len: {len(text)})")
+                                            break
 
-                            self.logger.debug(f"Extracted text length: {len(text)} characters")
+                            # Method 4: JavaScript extraction
+                            if not text or len(text.strip()) < 10:
+                                try:
+                                    text = self.driver.execute_script("""
+                                        const post = arguments[0];
+                                        let allText = '';
+
+                                        // Try multiple approaches to get text
+                                        const textSelectors = [
+                                            '.feed-shared-text span',
+                                            'span[dir="ltr"]', 
+                                            '.attributed-text-segment-list__content span',
+                                            '.break-words'
+                                        ];
+
+                                        for (const selector of textSelectors) {
+                                            const elements = post.querySelectorAll(selector);
+                                            for (const el of elements) {
+                                                if (el.textContent && el.textContent.trim() && !el.textContent.includes('Like') && !el.textContent.includes('Comment')) {
+                                                    allText += el.textContent.trim() + ' ';
+                                                }
+                                            }
+                                            if (allText.trim()) break;
+                                        }
+
+                                        return allText.trim();
+                                    """, post)
+                                    self.logger.debug(f"Method 4 - JavaScript: '{text[:50]}...' (len: {len(text)})")
+                                except Exception as js_error:
+                                    self.logger.debug(f"JavaScript extraction failed: {js_error}")
+
+                            # Method 5: Raw textContent with cleaning
+                            if not text or len(text.strip()) < 10:
+                                raw_text = post.get_attribute('textContent') or ''
+                                # Clean out UI elements
+                                import re
+                                cleaned = re.sub(r'\b(Like|Comment|Share|See more|Show translation)\b', '', raw_text,
+                                                 flags=re.IGNORECASE)
+                                cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+                                if len(cleaned) > 20:  # Only use if we got substantial content
+                                    text = cleaned
+                                    self.logger.debug(
+                                        f"Method 5 - cleaned textContent: '{text[:50]}...' (len: {len(text)})")
+
+                            self.logger.debug(f"FINAL extracted text length: {len(text)} characters")
 
                         except Exception as e:
                             self.logger.warning(f"Error extracting text from post: {e}")
