@@ -75,12 +75,12 @@ class LinkedInLikeBot:
         """
         try:
             # Add debug logging
-            self.logger.debug(f"DEBUG: Checking relevance for text: '{post_text[:100]}...'")
-            self.logger.debug(f"DEBUG: Text length: {len(post_text)}")
+            self.logger.info(f"DEBUG: Checking relevance for text: '{post_text[:100]}...'")
+            self.logger.info(f"DEBUG: Text length: {len(post_text)}")
 
             # Check if text is empty or too short
             if not post_text or len(post_text.strip()) < 10:
-                self.logger.debug("Text too short or empty, skipping")
+                self.logger.info("Text too short or empty, skipping")
                 return False
 
             lower_text = post_text.lower()
@@ -88,20 +88,20 @@ class LinkedInLikeBot:
             # Check for exclude words
             found_words = [word for word in self.excludewords if word in lower_text]
             if found_words:
-                self.logger.debug(f"Excludeword(s) found: {found_words}")
+                self.logger.info(f"Excludeword(s) found: {found_words}")
                 return False
 
             # Check language (Dutch only)
             lang_code = detect(post_text)
             if lang_code != 'nl':
-                self.logger.debug(f"Post not in Dutch (detected: {lang_code})")
+                self.logger.info(f"Post not in Dutch (detected: {lang_code})")
                 return False
 
             return True
 
         except Exception as e:
-            self.logger.warning(f"Error in relevance check: {e}")
-            self.logger.debug(f"DEBUG: Failed text was: '{post_text[:50]}...'")  # Add this line
+            self.logger.info(f"Error in relevance check: {e}")
+            self.logger.info(f"DEBUG: Failed text was: '{post_text[:50]}...'")  # Add this line
             return False
 
     def setup(self):
@@ -122,7 +122,7 @@ class LinkedInLikeBot:
                 service = Service(chromedriver_path)
                 self.logger.info(f"Using manual ChromeDriver: {chromedriver_path}")
             else:
-                self.logger.error(f"ChromeDriver not found at: {chromedriver_path}")
+                self.logger.info(f"ChromeDriver not found at: {chromedriver_path}")
                 raise FileNotFoundError(f"Please download chromedriver.exe to: {chromedriver_path}")
         else:
             # Linux/Mac - use automatic download
@@ -173,7 +173,7 @@ class LinkedInLikeBot:
             self.logger.info("Logged in to LinkedIn")
 
         except Exception as e:
-            self.logger.error(f"Failed to login: {e}")
+            self.logger.info(f"Failed to login: {e}")
             raise
 
     def like_posts_from_interesting_people(self):
@@ -271,7 +271,7 @@ class LinkedInLikeBot:
                             self.driver.switch_to.window(original_window)
 
             except Exception as e:
-                self.logger.error(f"Failed to process {profile_url}: {e}")
+                self.logger.info(f"Failed to process {profile_url}: {e}")
                 self.errors.append(f"Profile error: {str(e)[:100]}")
 
     def like_posts_from_search(self):
@@ -350,7 +350,7 @@ class LinkedInLikeBot:
                         continue
 
             except Exception as e:
-                self.logger.error(f"Error searching keyword '{keyword}': {e}")
+                self.logger.info(f"Error searching keyword '{keyword}': {e}")
                 self.errors.append(f"Keyword search error: {str(e)[:100]}")
 
     def _switch_identity_and_like(self) -> bool:

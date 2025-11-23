@@ -362,3 +362,59 @@ git pull  # Enter credentials once
 ## License
 
 This project is for personal use. Be aware of terms of service for platforms you interact with.
+
+
+
+## Code Update Workflow
+
+### Daily Development Cycle
+
+#### On Your Laptop (Windows)
+```bash
+# 1. Make code changes in PyCharm
+# 2. Test locally if needed
+
+# 3. Commit and push changes
+git add .
+git commit -m "Updated bot logic"
+git push origin master
+```
+
+#### On Your NUC (via SSH)
+```bash
+# Option A: Manual update (immediate)
+cd ~/semi-agentic-company
+./scripts/stop.sh
+git pull origin master
+./scripts/start.sh
+
+# Option B: Wait for auto-update (5 minutes)
+# The scheduler automatically pulls and restarts
+```
+
+### Management Commands
+```bash
+# Check if running
+sac-status
+
+# View recent logs  
+sac-logs
+
+# Stop the system
+sac-stop
+
+# Start the system
+sac-start
+
+# Restart (stop + start)
+sac-restart
+```
+
+### Quick Status Check
+```bash
+# SSH into NUC and check everything at once
+ssh milo@your-nuc-ip
+sac-status && echo "--- Recent Logs ---" && sac-logs | tail -10
+```
+
+**That's it!** Code on Windows → Push to GitHub → NUC updates automatically (or manually trigger with `sac-restart`)
