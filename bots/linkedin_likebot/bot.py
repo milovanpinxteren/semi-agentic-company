@@ -72,14 +72,17 @@ class LinkedInLikeBot:
     def is_relevant(self, post_text: str) -> bool:
         """
         Check if post is relevant (Dutch language, no exclude words)
-
-        Args:
-            post_text: Text content of the post
-
-        Returns:
-            bool: True if post is relevant, False otherwise
         """
         try:
+            # Add debug logging
+            self.logger.debug(f"DEBUG: Checking relevance for text: '{post_text[:100]}...'")
+            self.logger.debug(f"DEBUG: Text length: {len(post_text)}")
+
+            # Check if text is empty or too short
+            if not post_text or len(post_text.strip()) < 10:
+                self.logger.debug("Text too short or empty, skipping")
+                return False
+
             lower_text = post_text.lower()
 
             # Check for exclude words
@@ -98,6 +101,7 @@ class LinkedInLikeBot:
 
         except Exception as e:
             self.logger.warning(f"Error in relevance check: {e}")
+            self.logger.debug(f"DEBUG: Failed text was: '{post_text[:50]}...'")  # Add this line
             return False
 
     def setup(self):
@@ -128,6 +132,13 @@ class LinkedInLikeBot:
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument('--disable-extensions')
         options.add_argument('--disable-renderer-backgrounding')
+
+        options.add_argument('--force-device-scale-factor=1')
+        options.add_argument('--enable-font-antialiasing')
+        options.add_argument('--disable-lcd-text')
+        options.add_argument('--enable-accelerated-2d-canvas=false')
+        options.add_argument('--disable-gpu-sandbox')
+
         options.add_experimental_option("detach", False)
         options.page_load_strategy = 'normal'
 
@@ -294,7 +305,27 @@ class LinkedInLikeBot:
                         break
 
                     try:
-                        text = post.text
+                        try:
+                            # Try multiple methods to extract text
+                            text = post.text
+
+                            # If text is empty, try alternative methods
+                            if not text or len(text.strip()) < 10:
+                                # Try getting text from specific elements
+                                text_elements = post.find_elements(By.CSS_SELECTOR,
+                                                                   '.feed-shared-text, .feed-shared-update-v2__description, .attributed-text-segment-list__content')
+                                if text_elements:
+                                    text = ' '.join([elem.text for elem in text_elements if elem.text])
+
+                                # If still empty, try getting all text content
+                                if not text or len(text.strip()) < 10:
+                                    text = post.get_attribute('textContent') or ''
+
+                            self.logger.debug(f"Extracted text length: {len(text)} characters")
+
+                        except Exception as e:
+                            self.logger.warning(f"Error extracting text from post: {e}")
+                            text = ""
 
                         # Check relevance
                         if not self.is_relevant(text):
