@@ -15,6 +15,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
+import os
+import platform
+from webdriver_manager.chrome import ChromeDriverManager
+
 
 
 class LinkedInFollowerMessageBot:
@@ -60,6 +64,15 @@ class LinkedInFollowerMessageBot:
         chrome_options.add_argument('--run-all-compositor-stages-before-draw')
         chrome_options.add_argument('--disable-gpu-compositing')
         chrome_options.add_argument('--software-rasterizer')
+        chrome_options.add_argument('--disable-extensions')
+        chrome_options.add_argument('--disable-renderer-backgrounding')
+        chrome_options.add_argument('--force-device-scale-factor=1')
+        chrome_options.add_argument('--enable-font-antialiasing')
+        chrome_options.add_argument('--disable-lcd-text')
+        chrome_options.add_argument('--enable-accelerated-2d-canvas=false')
+        chrome_options.add_argument('--disable-gpu-sandbox')
+        chrome_options.add_experimental_option("detach", False)
+        chrome_options.page_load_strategy = 'normal'
 
         # Add user agent to look more human
         chrome_options.add_argument(
